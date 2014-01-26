@@ -11,6 +11,7 @@ The cache will write to the current directory into file kosapy_cache.sqlite. The
 
 Start by seeing the examples.py and typing:
 
+    from koapy import Kosapy
     k=Kosapy(url, ('username', 'password'))
 
 Resources
@@ -63,8 +64,12 @@ can be used directly:
 
     parallel.semester.code
 
-The rule of the thumb is: when you are sure there can be only one tag, use it directly. When there is even a slight
-possibility that there will be more, iterate. It's guaranteed to work.
+Acessing a field that is not present returns False:
+
+    parallel.semester.weather # returns False
+
+The rule of the thumb is: When you are not sure if the tag is present, check first. When you are sure there will be precisely one tag, use it directly. When there is even a slight
+possibility that there will be more, iterate as it's guaranteed to work.
 
 Advanced selection: get() supports filtering:
 

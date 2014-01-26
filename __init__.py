@@ -6,9 +6,11 @@ import requests_cache
 import re
 from datetime import datetime, date
 
-HEADERS={"content-type": "applicaion/xml;encoding=utf-8"}
+HEADERS={"content-type": "applicaion/xml;encoding=utf-8",
+         "accept-language": "cs"}
 
 requests_cache.install_cache('kosapy_cache', expire_after=24*60*60)
+
 
 class Kosapy:
     def __init__(self, url, auth, verbose=False):
@@ -31,20 +33,29 @@ class Kosapy:
             
         r=requests.get(self._kosapi+location, auth=self._auth, params=params, headers=HEADERS)
         r.encoding='utf-8'
+        if r.status_code!=200:
+            if r.status_code==403:
+                raise Exception('Wrong authentication')
+            elif r.status_code==404:
+                raise Exception('Resource %s not found'%location)
+            elif r.status_code>=500:
+                raise Exception('Internal error')
+            else:
+                raise Exception('Error %d requesting %s'%(r.status_code, location))
+
         return ObjectiveKosapiDoc(bytes(r.text, 'utf-8'), self)
 
     def get_contents(self, feed):
         feed=(feed.get("atom:feed") if feed.get("atom:feed") else feed).get("atom:entry")
-        return (e.get("atom:content") for e in feed) if feed else ()
+        return (e.get("atom:content") for e in feed) if feed else (False)
+
 
 class Resource:
     def __init__(self, location, api):
         self._location=location
         self._params={}
         self._children={}
-
         self._api=api
-
         self._content=None
 
     def __call__(self, **kwargs):
@@ -76,6 +87,7 @@ class Resource:
 
         return self._children[item]
 
+
 class ObjectiveKosapiDoc:
     def __init__(self, doc, api):
         self._api=api
@@ -94,6 +106,7 @@ class ObjectiveKosapiDoc:
 
     def _parse_doc(self, doc):
         xml.sax.parseString(doc, SaxHandler(self._root, self._api))
+
 
 class Element:
     _redatetime=re.compile("^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$")
@@ -152,7 +165,7 @@ class Element:
         elif self._redate.match(self._content):
             self._content_parsed=datetime.strptime(self._content, "%Y-%m-%d").date()
         elif self._rebool.match(self._content):
-            self._content_parsed=bool(self._content)
+            self._content_parsed=self._content=="true"
         else:
             self._content_parsed=self._content
 
@@ -173,6 +186,7 @@ class Element:
                     sub.traverse()
         else:
             print("%s: %s (%s)"%(self._name, self._content, str(self._attrs.getNames())))
+
 
 class SaxHandler(xml.sax.ContentHandler):
     def __init__(self, root, api):
