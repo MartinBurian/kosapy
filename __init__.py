@@ -3,7 +3,6 @@ __author__ = 'martinjr'
 import xml.sax
 import requests
 import requests_cache
-import requests_oauthlib as reqo
 import re
 from datetime import datetime, date
 

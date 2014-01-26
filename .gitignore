@@ -1,6 +1,6 @@
 *.py[cod]
 
-kosapy.sqlite
+kosapy_cache.sqlite
 
 # IDE
 .idea
