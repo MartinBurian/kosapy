@@ -15,14 +15,14 @@ if __name__=="__main__":
 
     # dates and courses of registered exams
     for e in studs.buriama8.registeredExams:
-        print(e.exam.startDate(), e.exam.course())
+        print(e.exam.startDate().strftime("%d/%m/%Y"), e.exam.course())
 
     # dates of OPT exams
     for e in exams(query="course==A4B33OPT"):
-        print(e.startDate())
+        print(e.startDate().strftime("%d/%m/%Y %H:%M"))
 
     # parallels in semester B122
-    for p in studs.buriama8.parallels(sem="B122"):
+    for p in studs.buriama8.parallels(sem="B1š22"):
         print(p.course()) # original tag content
         print(p.course.code()) # code from xlinked entry
 

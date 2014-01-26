@@ -4,15 +4,19 @@ import xml.sax
 import requests
 import requests_cache
 import requests_oauthlib as reqo
+import re
+from datetime import datetime, date
 
 HEADERS={"content-type": "applicaion/xml;encoding=utf-8"}
 
 requests_cache.install_cache('kosapy_cache', expire_after=24*60*60)
 
 class Kosapy:
-    def __init__(self, url, auth):
+    def __init__(self, url, auth, verbose=False):
         self._kosapi=url
         self._auth=auth
+        
+        self._verbose=verbose
 
         self._resources={}
 
@@ -23,7 +27,9 @@ class Kosapy:
         return self._resources[item]
 
     def get_feed(self, location, params={}):
-        print("Fetching "+self._kosapi+location)
+        if self._verbose:
+            print("Fetching "+self._kosapi+location)
+            
         r=requests.get(self._kosapi+location, auth=self._auth, params=params, headers=HEADERS)
         r.encoding='utf-8'
         return ObjectiveKosapiDoc(bytes(r.text, 'utf-8'), self)
@@ -65,7 +71,6 @@ class Resource:
     def get(self, item):
         return self.__getattr__(item)
 
-
     def __getattr__(self, item):
         if item not in self._children:
             self._children[item]=Resource(self._location+"/"+item, self._api)
@@ -92,8 +97,14 @@ class ObjectiveKosapiDoc:
         xml.sax.parseString(doc, SaxHandler(self._root, self._api))
 
 class Element:
+    _redatetime=re.compile("^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$")
+    _redate=re.compile("^\d{4}-\d{2}-\d{2}$")
+    _rebool=re.compile("^true$|^false$")
+    _redigit=re.compile("^\d+$")
+
     def __init__(self, name, attrs, api):
         self._content=""
+        self._content_parsed=""
         self._name=name
         self._attrs=attrs
 
@@ -112,9 +123,11 @@ class Element:
         else:
             return False
 
-    def __call__(self, attr=""):
+    def __call__(self, attr="", raw=False):
         if not attr:
-            return self._content
+            if not self._content_parsed:
+                self._parse_content()
+            return self._content if raw else self._content_parsed
         elif attr in self._attrs:
             return self._attrs.getValue(attr)
         else:
@@ -129,9 +142,20 @@ class Element:
                 for attr, value in kwargs.items():
                     if el(attr)==value:
                         return el
-
         else:
             return self.__getattr__(item)
+
+    def _parse_content(self):
+        if self._redigit.match(self._content):
+            self._content_parsed=int(self._content)
+        elif self._redatetime.match(self._content):
+            self._content_parsed=datetime.strptime(self._content, "%Y-%m-%dT%H:%M:%S")
+        elif self._redate.match(self._content):
+            self._content_parsed=datetime.strptime(self._content, "%Y-%m-%d").date()
+        elif self._rebool.match(self._content):
+            self._content_parsed=bool(self._content)
+        else:
+            self._content_parsed=self._content
 
     def add_element(self, element):
         if element._name in self._children:

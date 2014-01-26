@@ -92,6 +92,17 @@ The referenced resource is fetched for you and the resulting entry is substitute
         teacher("xlink:href") - the xlink (original field attribute value)
         teacher.firstName() - value from the fetched xlinked entry
 
+The field type is detected automatically and parsed:
+* date to datetinme.date
+* datetime to datetime.datetime
+* integer to int
+* boolean to bool
+
+You can still access the original value by using a kwarg raw=True:
+
+    exam.startDate() # datetime.datetime(2014, 1, 5, 10, O)
+    exam.startDate(raw=True) # '2014-01-05T10:00:00'
+
 If you don't understand something, see the examples. Fill in your username (example: buriama8) and password (HPH, the one for KOS) in example.py and get started!
 
 Performance
