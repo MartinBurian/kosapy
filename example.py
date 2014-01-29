@@ -3,28 +3,26 @@ __author__ = 'martinjr'
 from __init__ import Kosapy
 
 if __name__=="__main__":
-    k=Kosapy("https://kosapi.feld.cvut.cz/api/3b/", ("USER", "PASSWD"))
-    studs=k.students
-    exams=k.exams
+    k=Kosapy("https://kosapi.feld.cvut.cz/api/3b/", ("buriama8", "A02T3Dcvut"))
+    studs=k.students # students resource
+    exams=k.exams # exams resource
 
-    # fetch student
-    s=studs.buriama8()
+    # single student information
+    s=studs.buriama8() # fetch student buriama8
     print("%s %s"%(s.firstName(), s.lastName()))
-    # xlinked faculty
-    print(s.faculty.code())
+    print(s.faculty.code()) # xlinked faculty
 
     # dates and courses of registered exams
     for e in studs.buriama8.registeredExams:
         print(e.exam.startDate().strftime("%d/%m/%Y"), e.exam.course())
 
     # dates of OPT exams
-    for e in exams(query="course==A4B33OPT"):
+    for e in exams(query="course==A4B33OPT", sem="B131"):
         print(e.startDate().strftime("%d/%m/%Y %H:%M"))
 
-    # parallels in semester B122
-    for p in studs.buriama8.parallels(sem="B1š22"):
-        print(p.course()) # original tag content
-        print(p.course.code()) # code from xlinked entry
+    # student's parallels in semester B122
+    for p in studs.buriama8.parallels(sem="B122"):
+        print("%s (%s) - %d"%(p.course(), p.course.code(), p.code())) # code from xlinked entry
 
     # all Martins currently on FEE
     # larger limit means less paging

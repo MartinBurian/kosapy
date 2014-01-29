@@ -1,4 +1,5 @@
 __author__ = 'martinjr'
+__all__ = ["Kosapy"]
 
 import xml.sax
 import requests
@@ -11,14 +12,11 @@ HEADERS={"content-type": "applicaion/xml;encoding=utf-8",
 
 requests_cache.install_cache('kosapy_cache', expire_after=24*60*60)
 
-
 class Kosapy:
     def __init__(self, url, auth, verbose=False):
         self._kosapi=url
         self._auth=auth
-        
         self._verbose=verbose
-
         self._resources={}
 
     def __getattr__(self, item):
@@ -87,11 +85,14 @@ class Resource:
 
         return self._children[item]
 
+    def __repr__(self):
+        return "<KosAPI resource "+self._location+">"
+
 
 class ObjectiveKosapiDoc:
     def __init__(self, doc, api):
         self._api=api
-        self._root=Element("root", (), api)
+        self._root=KosapiElement("root", (), api)
         if doc:
             self._parse_doc(doc)
 
@@ -105,10 +106,10 @@ class ObjectiveKosapiDoc:
         return self.__getattr__(item)
 
     def _parse_doc(self, doc):
-        xml.sax.parseString(doc, SaxHandler(self._root, self._api))
+        xml.sax.parseString(doc, KosapiSaxHandler(self._root, self._api))
 
 
-class Element:
+class KosapiElement:
     _redatetime=re.compile("^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$")
     _redate=re.compile("^\d{4}-\d{2}-\d{2}$")
     _rebool=re.compile("^true$|^false$")
@@ -157,6 +158,9 @@ class Element:
         else:
             return self.__getattr__(item)
 
+    def __repr__(self):
+        return "<KosAPI entry "+self._name+">"
+
     def _parse_content(self):
         if self._redigit.match(self._content):
             self._content_parsed=int(self._content)
@@ -165,7 +169,7 @@ class Element:
         elif self._redate.match(self._content):
             self._content_parsed=datetime.strptime(self._content, "%Y-%m-%d").date()
         elif self._rebool.match(self._content):
-            self._content_parsed=self._content=="true"
+            self._content_parsed=self._content.lower()=="true"
         else:
             self._content_parsed=self._content
 
@@ -188,13 +192,13 @@ class Element:
             print("%s: %s (%s)"%(self._name, self._content, str(self._attrs.getNames())))
 
 
-class SaxHandler(xml.sax.ContentHandler):
+class KosapiSaxHandler(xml.sax.ContentHandler):
     def __init__(self, root, api):
         self.path=[root]
         self._api=api
 
     def startElement(self, name, attrs):
-        element=Element(name, attrs, self._api)
+        element=KosapiElement(name, attrs, self._api)
         self.path[-1].add_element(element)
         self.path.append(element)
 

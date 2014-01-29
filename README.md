@@ -3,15 +3,15 @@ kosapy
 
 kosapy is a python client library for KosAPI, a REST API created to access the study information system KOS on CTU Prague.
 
-It is based on the implementation ideas of the [*siesta project*](https://github.com/scastillo/siesta). It is left to the user to take care of calling the API in a valid way as the library has no bindings to the API structure. It could even (after slight modifications) be used for nearly any REST API. The only presumptions made about the XML is organization of data into an ATOM feed and cross-referencing using xlink:href attribute.
+It is based on the implementation ideas of the [*siesta project*](https://github.com/scastillo/siesta). It is left to the user to take care of calling the API in a valid way as the library has no bindings to the API structure. It could even (after slight modifications) be used for nearly any REST API. The only presumptions made about the XML is organization of data into an ATOM feed (entries are atom:entry, multiple entries are in atom:feed and the interesting part of the entry is in atom:content) and cross-referencing using xlink:href attribute.
 
 Kosapy depend on requests and requests-cache (both best installed using pip) and is guaranteed to work with python 3.3. Earlier version support depends mainly on the libraries, any python 3+ should be fine.
 
-The cache will write to the current directory into file kosapy_cache.sqlite. The cache lifetime is 24h, earase by deleting the file.
+The cache will write to the current directory into file kosapy_cache.sqlite. The cache lifetime is 24h, erase by deleting the file.
 
 Start by seeing the examples.py and typing:
 
-    from koapy import Kosapy
+    from kosapy import Kosapy
     k=Kosapy(url, ('username', 'password'))
 
 Resources
@@ -22,7 +22,7 @@ A resource is referenced by k.resource.sub.ssub, e.g.
 
 If the resource is not a valid python identifier, use the get method to reference it:
 
-    k.resource.get("invalid:recource-name").ssub
+    k.resource.get("invalid:resource-name").ssub
 
 The resource contents are fetched by calling or iterating over the resource. Fetch one entry:
 
@@ -32,14 +32,14 @@ The resource contents are fetched by calling or iterating over the resource. Fet
 Iterate over all entries (paging taken into account):
 
     for entry in k.students.buriama8.enrolledCourses:
-        do stuff()
+        do stuff with entry
 
 URL parameters are specified as kwargs:
 
     for entry in k.courses(query="code=gt=A4;code=lt=A5", sem="B131"):
         do stuff with OI-only course entries in semester B131
         
-The result of calling with kwargs is a resource, so in the rare occasion you want only one entry of a filtered resource, you need to call for it:
+The result of calling a resource with kwargs is a resource, so in the rare occasion you want only one entry of a filtered resource, you need to call for it:
 
     k.courses(sem="B131")()
 
@@ -64,24 +64,18 @@ can be used directly:
 
     parallel.semester.code
 
-Acessing a field that is not present returns False:
+Accessing a field that is not present returns False:
 
     parallel.semester.weather # returns False
 
 The rule of the thumb is: When you are not sure if the tag is present, check first. When you are sure there will be precisely one tag, use it directly. When there is even a slight
 possibility that there will be more, iterate as it's guaranteed to work.
 
-Advanced selection: get() supports filtering:
-
-    parallel.get("teacher", rel="stylesheet")
-selects all teachers with rel="stylesheet" attribute.
-
-
-Get field content by calling:
+Once you got the field (by referencing, checking and maybe iterating), you can finally get to the data itself. Get field content by calling:
 
     parallel.code()
     
-Get filed attribute by calling too:
+Get field attribute by calling too:
 
     parallel.course("xlink:href)
 
@@ -98,7 +92,7 @@ The referenced resource is fetched for you and the resulting entry is substitute
         teacher.firstName() - value from the fetched xlinked entry
 
 The field type is detected automatically and parsed:
-* date to datetinme.date
+* date to datetime.date
 * datetime to datetime.datetime
 * integer to int
 * boolean to bool
@@ -112,11 +106,11 @@ If you don't understand something, see the examples. Fill in your username (exam
 
 Performance
 -----------
-kosapy has been developed literally overnight, so it might have preformance issues. It uses lazy loading of xreffed resources and features a simple http cache, but further speedups are sure possible. We'll see if it gets slow enough to be annoying.
+kosapy has been developed literally overnight, so it might have performance issues. It uses lazy loading of xlinked resources and features a simple http cache, but further speedups are sure possible. We'll see if it gets slow enough to be annoying.
 
 MISC
 ----
-kosapy is very young, it might cange drastically in the future, But we still strongly encourage you to use it and report bugs!
+kosapy is very young, it might change drastically in the future, But we still strongly encourage you to use it and report bugs!
 
 We will be implementing OAuth2. Sometime.
 
