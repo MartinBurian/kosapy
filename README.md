@@ -43,6 +43,17 @@ The result of calling a resource with kwargs is a resource, so in the rare occas
 
     k.courses(sem="B131")()
 
+If the entry refers to content available in another resource, as for example students in courses/[course]/students, you can reference the other resource as entry.resource:
+
+    courses=set()
+    for student in k.courses.A4B33OPT.students:
+        for ce in student.resource.enrolledCourses:
+            courses.add(ce.course())
+
+     # This would leave you with a set of names of courses that students have enrolled along A4B33OPT.
+
+Of course this costs time, so if the information you need is in the student entry, you don't need to fetch it again.
+
 Fields
 ------
 In the entry you access the fields (=tags) in the atom:content hierarchically. Accessing the day in parallel entry is

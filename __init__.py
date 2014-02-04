@@ -45,7 +45,20 @@ class Kosapy:
 
     def get_contents(self, feed):
         feed=(feed.get("atom:feed") if feed.get("atom:feed") else feed).get("atom:entry")
-        return (e.get("atom:content") for e in feed) if feed else (False)
+
+        if not feed:
+            return ()
+
+        for e in feed:
+            c=e.get("atom:content")
+            selff=e.get("atom:link", rel="self")
+            if selff:
+                href=selff("href")
+                if href[-1]=="/":
+                    href=href[:-1]
+
+                c.resource=Resource(href, self)
+        return (e.get("atom:content") for e in feed) if feed else ()
 
 
 class Resource:
