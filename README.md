@@ -7,8 +7,6 @@ It is based on the implementation ideas of the [*siesta project*](https://github
 
 Kosapy depend on requests and requests-cache (both best installed using pip) and is guaranteed to work with python 3.3. Earlier version support depends mainly on the libraries, any python 3+ should be fine.
 
-The cache will write to the current directory into file kosapy_cache.sqlite. The cache lifetime is 24h, erase by deleting the file.
-
 Start by seeing the examples.py and typing:
 
     from kosapy import Kosapy
@@ -56,6 +54,8 @@ Of course this costs time, so if the information you need is in the student entr
 
 Fields
 ------
+The field access is based on the [*objectivexml*](https://github.com/MartinBurian/objectivexml) library. Well, it's actually the other way around, objectivexml was developed as a part of kosapy and then made standalone. They are close siblings and were born on the same night. To make working with kosapy more comfortable, several features were added here, but you can generally refer to objectivexml docs if you don't understand something here. It might be written in different words there.
+
 In the entry you access the fields (=tags) in the atom:content hierarchically. Accessing the day in parallel entry is
 
     for parallel in k.parallels:
@@ -117,11 +117,25 @@ If you don't understand something, see the examples. Fill in your username (exam
 
 Performance
 -----------
-kosapy has been developed literally overnight, so it might have performance issues. It uses lazy loading of xlinked resources and features a simple http cache, but further speedups are sure possible. We'll see if it gets slow enough to be annoying.
+Fetched resources, or more precisely all the HTTP responses from KosAPI, are cached using requests_cache. There are two utility methods built into kosapy, but if you need something special, please refer to [*requests_cache docs*](https://requests-cache.readthedocs.org/en/latest/) and suit yourself.
+
+The cache will write to the current directory into file kosapy_cache.sqlite. The cache lifetime is 24h, erase by deleting the file.
+
+You can disable the cache and enable it again:
+
+    # disable cache
+    k.use_cache(False)
+
+    # enable cache
+    k.use_cache(True)
+
+But really, why would you disable the cache? If you were to fetch all students ever on FEE, it might be a good idea, but it's up to you.
 
 MISC
 ----
 kosapy is very young, it might change drastically in the future, But we still strongly encourage you to use it and report bugs!
+
+kosapy has been developed literally overnight, so it might have performance issues. It uses lazy loading of like everything and features a simple http cache, but further speedups are sure possible. We'll see if it gets slow enough to be annoying.
 
 We will be implementing OAuth2. Sometime.
 

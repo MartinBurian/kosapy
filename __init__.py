@@ -60,6 +60,13 @@ class Kosapy:
                 c.resource=Resource(href, self)
         return (e.get("atom:content") for e in feed) if feed else ()
 
+    def use_cache(self, use):
+        if use:
+            requests_cache.install_cache('kosapy_cache', expire_after=24*60*60)
+        else:
+            requests_cache.uninstall_cache()
+
+
 
 class Resource:
     def __init__(self, location, api):
