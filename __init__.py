@@ -154,7 +154,7 @@ class KosapiElement:
         if item in self._children:
             return self._children[item]
         else:
-            return False
+            return ()
 
     def __call__(self, attr="", raw=False):
         if not attr:

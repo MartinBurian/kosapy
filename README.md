@@ -3,9 +3,11 @@ kosapy
 
 kosapy is a python client library for KosAPI, a REST API created to access the study information system KOS on CTU Prague.
 
-It is based on the implementation ideas of the [*siesta project*](https://github.com/scastillo/siesta). It is left to the user to take care of calling the API in a valid way as the library has no bindings to the API structure. It could even (after slight modifications) be used for nearly any REST API. The only presumptions made about the XML is organization of data into an ATOM feed (entries are atom:entry, multiple entries are in atom:feed and the interesting part of the entry is in atom:content) and cross-referencing using xlink:href attribute.
+It is based on the implementation ideas of the [*siesta project*](https://github.com/scastillo/siesta). It is left to the user to take care of calling the API in a valid way as the library has no bindings to the API structure. It could even (after slight modifications) be used for nearly any REST API.
 
 Kosapy depend on requests and requests-cache (both best installed using pip) and is guaranteed to work with python 3.3. Earlier version support depends mainly on the libraries, any python 3+ should be fine.
+
+This is the only docs you'll find. Should you encounter a bug, some unexpected behavior, syntactic unclarity or missing feature, please let us know in the [*issue tracker*](https://github.com/MartinBurian/kosapy/issues) here at github.
 
 Start by seeing the examples.py and typing:
 
@@ -70,14 +72,13 @@ The returned field is always iterable:
     for slot in parallel.timetableSlot:
         print(slot.day)
 
-When there are more tags with the same path (e.g. parallel.teacher), the result is a list; when the tag is only one, it
-can be used directly:
+When there are more tags with the same path (e.g. parallel.teacher), the result is a list; when the tag is only one, it can be used directly:
 
     parallel.semester.code
 
-Accessing a field that is not present returns False:
+Accessing a field that is not present returns an empty iterator:
 
-    parallel.semester.weather # returns False
+    parallel.semester.weather # returns ()
 
 The rule of the thumb is: When you are not sure if the tag is present, check first. When you are sure there will be precisely one tag, use it directly. When there is even a slight
 possibility that there will be more, iterate as it's guaranteed to work.
@@ -93,7 +94,7 @@ Get field attribute by calling too:
 kosapy deals with xlink references for you, so listing enrolled exam dates is as simple as
 
     for registration in k.students.buriama8.registeredExams:
-        print registration.exam.startDate()
+        print(registration.exam.startDate())
 
 The referenced resource is fetched for you and the resulting entry is substituted into the field. The original content and attributes can still be accesed the same:
 
@@ -102,7 +103,7 @@ The referenced resource is fetched for you and the resulting entry is substitute
         teacher("xlink:href") - the xlink (original field attribute value)
         teacher.firstName() - value from the fetched xlinked entry
 
-The field type is detected automatically and parsed:
+The field type is detected automatically and the value is parsed:
 * date to datetime.date
 * datetime to datetime.datetime
 * integer to int
@@ -138,5 +139,7 @@ kosapy is very young, it might change drastically in the future, But we still st
 kosapy has been developed literally overnight, so it might have performance issues. It uses lazy loading of like everything and features a simple http cache, but further speedups are sure possible. We'll see if it gets slow enough to be annoying.
 
 We will be implementing OAuth2. Sometime.
+
+ Since kosapy is so general, it could be modified to quite any REST API. The only presumptions made about the XML is organization of data into an ATOM feed (entries are atom:entry, multiple entries are in atom:feed and the interesting part of the entry is in atom:content) and cross-referencing using xlink:href attribute of fields and atom:link href="self" of entries. If you're building a client lib for a different API, take a look at the above referenced siesta project, we think it's really cool (and that's why we borrowed some of their ideas). They focus on JSON, though, and we needed XML.
 
 Supporting POST, PUT and others is not neccessary for KosAPI, but useful for writeable REST APIs. We might implement them sometime.
