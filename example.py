@@ -3,7 +3,7 @@ __author__ = 'martinjr'
 from __init__ import Kosapy
 
 if __name__=="__main__":
-    k=Kosapy("https://kosapi.feld.cvut.cz/api/3b/", ("buriama8", "A02T3Dcvut"))
+    k=Kosapy("https://kosapi.feld.cvut.cz/api/3b/", ("USERNAME", "PASSWORD"))
 
     # single student information
     s=k.students.buriama8() # fetch student buriama8
